@@ -1,0 +1,38 @@
+x-aws-access-key-id: &aws-access-key-id AKIAIOSFODNN7EXAMPLE
+x-aws-secret-key: &aws-secret-key wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+x-aws-default-region: &aws-default-region ap-northeast-1
+x-aws-default-output: &aws-default-output json
+
+x-minio-common: &minio-common
+  image: minio/minio:RELEASE.2021-07-30T00-02-00Z
+  command: server /data --console-address ":9001"
+  environment:
+    MINIO_ROOT_USER: *aws-access-key-id
+    MINIO_ROOT_PASSWORD: *aws-secret-key
+  healthcheck:
+    test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+    interval: 30s
+    timeout: 20s
+    retries: 3
+
+services:
+  minio:
+    <<: *minio-common
+    container_name: minio
+    ports:
+      - 9000:9000
+      - 9001:9001
+    volumes:
+      - ./docker/minio/data:/data
+      - ./docker/minio/config:/root/.minio
+  awscli:
+    build:
+      context: .
+      dockerfile: docker/awscli/dockerfile
+    container_name: awscli
+    tty: true
+    environment:
+      AWS_ACCESS_KEY_ID: *aws-access-key-id
+      AWS_SECRET_ACCESS_KEY: *aws-secret-key
+      AWS_DEFAULT_REGION: *aws-default-region
+      AWS_DEFAULT_OUTPUT: *aws-default-output
