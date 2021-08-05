@@ -31,6 +31,8 @@ services:
       dockerfile: docker/awscli/dockerfile
     container_name: awscli
     tty: true
+    depends_on:
+      - minio
     environment:
       AWS_ACCESS_KEY_ID: *aws-access-key-id
       AWS_SECRET_ACCESS_KEY: *aws-secret-key
